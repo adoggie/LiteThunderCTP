@@ -20,6 +20,7 @@
 #include "pubservice.h"
 #include "PosReceiver.h"
 #include "querybatch.h"
+#include "ctp-error.h"
 
 // typedef std::int8_t InstrumentRequirement;
 

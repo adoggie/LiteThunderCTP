@@ -30,7 +30,7 @@ link_libraries(  boost_system boost_thread boost_date_time redis++ hiredis
 add_executable(LiteThunderCTP
         main.cpp app.cpp config.cpp
         Controller.cpp
-        error.h error.cpp
+        error.h error.cpp ctp-error.h
         utils/logger.cpp utils/logger.h utils/os.h utils/os.cpp
 
       #  utils/mongoose.h utils/mongoose.c
@@ -45,5 +45,10 @@ add_executable(LiteThunderCTP
         orderslice.h orderslice.cpp
         tradetime.h tradetime.cpp
         querybatch.h querybatch.cpp
+        utils/price.h
        # HttpService.h HttpService.cpp
         )
+
+add_executable(LiteThunderTest
+        tests/test_order_slice.cpp orderslice.cpp orderslice.h )
+        

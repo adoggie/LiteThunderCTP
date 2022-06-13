@@ -19,8 +19,24 @@
 
 #include "../orderslice.h"
 
+
+#include<bits/stdc++.h>
+
+// 规格化价格
+// price  报价 
+// tick 最小变动价格
+float fixed_price(float price ,float tick){
+    float var = ( int(price/tick) * tick );
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(2) << var;
+    return boost::lexical_cast<float>(ss.str());    
+}
+
 int main(int argc , char ** argvs){
-    test_orderslice();
+    std::cout<< fixed_price( 37.66666,0.05)<< std::endl;
+    std::cout<< fixed_price( 1231,3)<< std::endl;
+
+    // test_orderslice2();
 	return 0 ;
 }
 

@@ -16,6 +16,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "app.h"
+#include "utils/price.h"
 #include "version.h"
 #include "market.h"
 #include "pubservice.h"
@@ -109,27 +110,29 @@ bool Controller::open(){
     }
     Application::instance()->getLogger().info("ctp user login okay!");
     // 查询挂单
-    std::this_thread::sleep_for(std::chrono::seconds(2)); 
+    std::this_thread::sleep_for(std::chrono::seconds(4)); 
     Application::instance()->getLogger().debug("queryOrder..");
     getTradeApi()->queryOrder();
     std::this_thread::sleep_for(std::chrono::seconds(2)); 
-    this->discardOrderAll();
-    std::this_thread::sleep_for(std::chrono::seconds(2)); 
+    // this->discardOrderAll();
+    // std::this_thread::sleep_for(std::chrono::seconds(2)); 
     // 查询合约信息，直到返回
-    std::lock_guard<std::recursive_mutex> lock(mtx_self);
-    start = std::time(NULL);
-    bool wait = true;    
-    while(wait){
-        for( auto kv : instruments_){        
-            if( kv.second->detail ) {
-                wait = false;
-                break;                
-            }            
+    if(0){
+        std::lock_guard<std::recursive_mutex> lock(mtx_self);
+        start = std::time(NULL);
+        bool wait = true;    
+        while(wait){
+            for( auto kv : instruments_){        
+                if( kv.second->detail ) {
+                    wait = false;
+                    break;                
+                }            
+            }
+            if( wait == false) break;
+            Application::instance()->getLogger().debug(">> queryInstrument..");
+            getTradeApi()->queryInstrument("");
+            std::this_thread::sleep_for(std::chrono::seconds(2)); 
         }
-        if( wait == false) break;
-        Application::instance()->getLogger().debug(">> queryInstrument..");
-        getTradeApi()->queryInstrument("");
-        std::this_thread::sleep_for(std::chrono::seconds(2)); 
     }
 
 
@@ -337,7 +340,7 @@ bool Controller::initInstruments(){
         inst->timeout = data.get("timeout",30).asInt();
         // inst->price_type = data.get("price_type","market").asString();
         inst->ticks = data.get("ticks",0).asInt(); // 默认 0 ， 最新成交价
-        inst->mode = data.get("mode","fee").asString(); // 默认 手续费模式 
+        inst->closemode = data.get("closemode","fee").asString(); // 默认 手续费模式 
 
         auto name = data.get("commodity","").asString();
         if( commodities_.find(name) == commodities_.end()){
@@ -431,10 +434,10 @@ void Controller::keepWalkingThread(){
                 }
             }
 
-            int present = long_pos - short_pos;
-            if( cfgs_.get_int("test.present_pos",0)){
-                present = cfgs_.get_int("test.present_pos.value",0);
-            }
+            // int present = long_pos - short_pos;
+            // if( cfgs_.get_int("test.present_pos",0)){
+            //     present = cfgs_.get_int("test.present_pos.value",0);
+            // }
             // 报单超时撤单
             // std::cout << "=1. slice size:" << instcfg->slices.size() << std::endl;
             if( instcfg->slices.size() ){
@@ -451,14 +454,18 @@ void Controller::keepWalkingThread(){
             }
             instcfg->target = instcfg->expect;
             
-            auto slices = createOrderSlice(instcfg->target,present);
-            if( instcfg->mode == "mode"){
-                int long_td , short_td;
-                long_td = this->getDirectionPosition(instcfg->name , "long").getTd();
-                short_td = this->getDirectionPosition( instcfg->name, "short").getTd();
-
-                slices = createOrderSliceMargin(instcfg->target,present,long_td, short_td);
-            }
+            int present = 0;
+            std::list< OrderSlice::Ptr > slices ;
+                   
+            int short_yd = this->getDirectionPosition( instcfg->name, "short").getYd();
+            int long_yd = this->getDirectionPosition( instcfg->name, "long").getYd();
+            int short_td = this->getDirectionPosition( instcfg->name, "short").getTd();
+            int long_td = this->getDirectionPosition( instcfg->name, "long").getTd();
+            slices = createOrderSliceMargin(instcfg->comm->exchange, 
+                            instcfg->target,
+                                    long_td,long_yd, short_td,short_yd);
+            present = (long_td + long_yd - short_td - short_yd);
+            
             if( slices.size() == 0){
                 continue ;
             }
@@ -467,10 +474,15 @@ void Controller::keepWalkingThread(){
             
             // std::cout << "=2. slice size:" << instcfg->slices.size() << std::endl;
 
+            
             if( cfgs_.get_int("debug.slice_order_print",0 ) ){
                 ss.str("");
                 Application::instance()->getLogger().debug("-------------------------"); 
-                ss  << "present:"<< present << " target:" << instcfg->target ;
+                ss  << instcfg->name << " "<< instcfg->comm->exchange << 
+                    " present:"<< present << " target:" << instcfg->target ;                
+                Application::instance()->getLogger().debug(ss.str()); 
+                ss.str("");
+                ss << "long_td:"<<long_td << " long_yd:"<<long_yd << " short_td:"<< short_td << " short_yd:"<<short_yd ;
                 Application::instance()->getLogger().debug(ss.str()); 
                 for ( auto slice : slices ){
                     ss.str("");
@@ -482,7 +494,7 @@ void Controller::keepWalkingThread(){
 
             // 报单
             for( auto &slice : instcfg->slices){
-                slice->instcfg = instcfg.get();
+                slice->instcfg = instcfg.get();              
                 if( cfgs_.get_int("test.create_order",1)){
                    int error = createOrder(slice);                    
 
@@ -495,95 +507,7 @@ void Controller::keepWalkingThread(){
     }  // end while 
     Application::instance()->getLogger().info("keepwalking died.");
 }
-
-void Controller::walk(std::shared_ptr<InstrumentConfig> instrument){
-    std::stringstream ss;   
-    auto instcfg = instrument; 
-    if( instcfg->expect == MAX_POSITION_VALUE){
-        return;
-    }
-
-    if( 0 ){
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));     
-        return;
-    }
-
-    std::lock_guard<std::recursive_mutex> lock(instcfg->mtx);
-
-    int long_pos = 0 ;
-    int short_pos = 0 ;
-    {
-        std::lock_guard<std::recursive_mutex> lock(mtx_self);
-        auto long_itr = inst_positions_long_.find( instrument->name);
-        if (long_itr != inst_positions_long_.end()) { // 无仓位
-            long_pos = long_itr->second.volume;
-        }
-        auto short_itr = inst_positions_short_.find( instrument->name);
-        if (short_itr != inst_positions_short_.end()) { // 无仓位
-            short_pos = short_itr->second.volume;
-        }
-    }
-
-    int present = long_pos - short_pos;
-    if( cfgs_.get_int("test.present_pos",0)){
-        present = cfgs_.get_int("test.present_pos.value",0);
-    }
-    // 报单超时撤单
-    // std::cout << "=1. slice size:" << instcfg->slices.size() << std::endl;
-    if( instcfg->slices.size() ){
-        if( (instcfg->start + instcfg->timeout) < std::time(NULL) ){
-            // 超时未能完成全部委托
-            for(auto & slice : instcfg->slices){
-                if( cfgs_.get_int("test.create_order",1)){
-                    cancelOrder(slice);
-                }
-            }
-            instcfg->slices.clear() ;
-        }
-        return;
-    }
-    instcfg->target = instcfg->expect;
     
-    auto slices = createOrderSlice(instcfg->target,present);
-    if( instcfg->mode == "mode"){
-        int long_td , short_td;
-        long_td = this->getDirectionPosition(instcfg->name , "long").getTd();
-        short_td = this->getDirectionPosition( instcfg->name, "short").getTd();
-
-        slices = createOrderSliceMargin(instcfg->target,present,long_td, short_td);
-    }
-    if( slices.size() == 0){
-        return ;
-    }
-    instcfg->slices = slices;
-    instcfg->start = std::time(NULL);
-    
-    // std::cout << "=2. slice size:" << instcfg->slices.size() << std::endl;
-
-    if( cfgs_.get_int("debug.slice_order_print",0 ) ){
-        ss.str("");
-        Application::instance()->getLogger().debug("-------------------------"); 
-        ss  << "present:"<< present << " target:" << instcfg->target ;
-        Application::instance()->getLogger().debug(ss.str()); 
-        for ( auto slice : slices ){
-            ss.str("");
-            ss << instcfg->name << " " << slice->direction << " " << slice->openclose << " " << slice->quantity ;                     
-            Application::instance()->getLogger().debug(ss.str()); 
-        }    
-        Application::instance()->getLogger().debug("-------------------------"); 
-    }
-
-    // 报单
-    for( auto &slice : instcfg->slices){
-        slice->instcfg = instcfg.get();
-        if( cfgs_.get_int("test.create_order",1)){
-            int error = createOrder(slice);                    
-
-        }
-    }
-    // std::cout << "=3. slice size:" << instcfg->slices.size() << std::endl;
-}
-        
 
 void Controller::close(){
     if (pos_receiver_) pos_receiver_->close();
@@ -665,8 +589,10 @@ int Controller::createOrder(OrderSlice::Ptr slice){
         // }
         req.price = (market->LastPrice - slice->instcfg->comm->tick_price * slice->instcfg->ticks); // * slice->instcfg->comm->tick_size;
     }
-    // req.price = round(req.price,2);
+    // 修正价格，使得与tick对齐
+    req.price = tradeutil::fixed_price(req.price, slice->instcfg->ticks);
 
+    
     { // print create order detail 
         std::stringstream ss;
         ss << ">> createOrder() "<<
@@ -1026,16 +952,18 @@ void Controller::onPositionQueryResult(const std::vector<  CThostFtdcInvestorPos
     std::lock_guard<std::recursive_mutex> lock(mtx_self);
     // 当日平掉的仓位也会返回, Position = 0 
     // 
+    static int count = 0;
     std::stringstream ss;
-    ss <<  "<< onPositionQueryResult()";
-    Application::instance()->getLogger().debug(ss.str());
+   
     for(auto pos :positons ){
         DirectionPosition dpos;
         std::shared_ptr< CThostFtdcInvestorPositionField > _pos = std::make_shared<CThostFtdcInvestorPositionField>();
         *_pos = pos ;
         dpos.underlying = _pos;
         dpos.direction = pos.PosiDirection;
-        dpos.volume = pos.Position;               
+        dpos.volume = pos.Position;     
+        // dpos.yd = pos.YdPosition;
+        // dpos.td = pos.TodayPosition;          
 
         if( pos.PosiDirection == THOST_FTDC_PD_Long){
             inst_positions_long_[pos.InstrumentID] = dpos;
@@ -1043,10 +971,34 @@ void Controller::onPositionQueryResult(const std::vector<  CThostFtdcInvestorPos
         if( pos.PosiDirection == THOST_FTDC_PD_Short){
             inst_positions_short_[pos.InstrumentID] = dpos;
         }
+
+        
     }
     position_return_ = true;
-    showPosition();
+    if( count == 0){
+         ss <<  "<< onPositionQueryResult()";
+        Application::instance()->getLogger().debug(ss.str());
+        showPosition();
+    }
     query_batch_.resetTime();
+    count++;
+
+    // clear pending orders
+    for(auto &inst : instruments_){        
+        int long_pos ,short_pos , present;        
+        long_pos = inst_positions_long_[inst.first].volume;
+        short_pos = inst_positions_short_[inst.first].volume;
+        present = long_pos - short_pos;
+        std::lock_guard<std::recursive_mutex> lock(inst.second->mtx);
+        if( inst.second->target == present && inst.second->slices.size() ){ 
+            // 报单已经全部成交，撤除等待的orderslice
+            inst.second->slices.clear();   
+            ss.str("");
+            ss << "<< onPositionQueryResult:: finished all, " << inst.first << " target=present: "<< present ;
+            Application::instance()->getLogger().debug(ss.str()); 
+        }
+    }
+
 }
 
 void Controller::onAccountQueryResult( CThostFtdcTradingAccountField * account){
@@ -1063,6 +1015,7 @@ void Controller::onOrderQueryResult(const std::vector<CThostFtdcOrderField> & or
    std::lock_guard<std::recursive_mutex> _(mtx_self);
     orders_ = orders;
     query_batch_.resetTime();
+    discardOrderAll();
 }
 
 

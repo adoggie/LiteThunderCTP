@@ -26,7 +26,8 @@ struct QueryBatchTimed{
     };
     bool                  started_ = false;
     std::time_t           latest_ = 0; // 最近一次发起的请求 ，查询返回清除 为 0 
-    int                   timeout_ = 3; 
+    int                   timeout_ = 2; 
+    int                   delta_ = 0;
     std::list< QueryTask> query_list_;
 
     void start();

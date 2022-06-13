@@ -128,10 +128,12 @@ void TdApi::OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction,
 {
     if( pRspInfo) {
         std::stringstream ss;
-        ss << "<< OnRspOrderAction() [trade.cpp] " << pInputOrderAction->InstrumentID 
-        << " , ErrorID: " << pRspInfo->ErrorID << " msg:" << pRspInfo->ErrorMsg        
+        ss << "<< OnRspOrderAction() " << pInputOrderAction->InstrumentID 
+        << " , ErrorID: " << pRspInfo->ErrorID << std::string("  MSG:") 
+        << get_error_message(pRspInfo->ErrorID)
         << "  OrderRef:" <<pInputOrderAction->OrderRef << " Front:"<< pInputOrderAction->FrontID
         << " Session" << pInputOrderAction->SessionID ;
+        
         Application::instance()->getLogger().error(ss.str());
 
     }
@@ -738,16 +740,18 @@ void TdApi::queryAccount(){
 void TdApi::onQueryResult(const std::string& event,const int ret,const std::string & errmsg){
     if(ret){
         std::stringstream ss;
-        Application::instance()->getLogger().error(ss.str());
-        ss << "Code:" << ret;
+        // Application::instance()->getLogger().error(ss.str());
+        ss << "Code:" << ret << " Msg:";
         if( ret == -1){
             ss << " Network Failed ";
         } else if( ret == -2){
             ss << " Pending Requests Exceed Limit";
         }else if( ret == -3){
             ss << " Sending Speed Exceed Limit";
+        }else{
+            ss << get_error_message(ret);
         }
-        ss << " " << errmsg;
+        // ss << " " << errmsg;
         Application::instance()->getLogger().error(ss.str());
         // this->onError(event,ret,ss.str());
     }

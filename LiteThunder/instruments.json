@@ -22,15 +22,15 @@
   ],
   "instruments": [
     
-    {"name": "AP210","commodity": "AP","timeout": 30,"enable": false , "ps":10,"price_type":2,"ticks":2, "mode":"fee", "comment":"限价"}
+    {"name": "AP210","commodity": "AP","timeout": 30,"enable": false , "ps":10,"ticks":2, "comment":"限价"}
 
-    ,{"name": "jm2208","commodity": "jm","timeout": 30,"enable": false,"ps":-4,"price_type":"market","ticks":5 , "mode":"fee"}
+    ,{"name": "jm2208","commodity": "jm","timeout": 30,"enable": false,"ps":-4,"ticks":-5  }
 
-    ,{"name": "a2207","commodity": "a","timeout": 30,"enable": false,"ps":-4,"price_type":"limit","ticks":5 , "mode":"fee"}
+    ,{"name": "a2207","commodity": "a","timeout": 30,"enable": true,"ps":-4,"ticks":5 }
 
-    ,{"name": "au2208","commodity": "au","timeout": 30,"enable": false,"ps":-4,"price_type":"limit","ticks":0 , "mode":"fee"}
+    ,{"name": "au2208","commodity": "au","timeout": 30,"enable": false,"ps":-4,"ticks":0 }
 
-    ,{"name": "al2207","commodity": "al","timeout": 30,"enable": true,"ps":-4,"price_type":"limit","ticks":3 , "mode":"fee"}
+    ,{"name": "al2207","commodity": "al","timeout": 30,"enable": false,"ps":-4,"ticks":3 }
 
   ],
   "comments":{

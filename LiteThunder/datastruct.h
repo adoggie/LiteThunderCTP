@@ -45,22 +45,15 @@ struct  OrderSlice{
     typedef TThostFtdcOffsetFlagEnType CloseType; // 平仓值
     typedef std::shared_ptr<OrderSlice> Ptr;
 
-    OrderSlice(){
-        price = 0 ;        
-        start= 0 ;
-        timeout = 30 ;  
-    }
-    // InstrumentId    instrument;
     std::string         direction; // buy , sell
     std::string         openclose;  // open , close 
     int                 quantity;
-    float               price;  
+    float               price = 0;  
     CloseType           closetype = THOST_FTDC_OFEN_Close;  // 平仓值
-
-    std::time_t         start;
+    std::time_t         start = 0;
     OrderReturn         order_ret;
-    InstrumentConfig*    instcfg = NULL;
-    int             timeout;
+    InstrumentConfig*   instcfg = NULL;
+    int                 timeout = 30;
 };
 
 struct TradingTime{
@@ -104,13 +97,15 @@ struct InstrumentConfig{
     CThostFtdcInstrumentCommissionRateField * commission = NULL;
     CThostFtdcInstrumentMarginRateField*  margin = NULL;
     // bool                            done = false;
-    std::string                     mode;
+    std::string                     closemode; //平仓模式 margin:保证金模式 , fee:手续费模式
 };
 
 // 持仓
 struct DirectionPosition{
     TThostFtdcPosiDirectionType direction ;
-    int     volume  =0 ;   
+    int     volume  =0 ; 
+    int     td = 0 ;
+    int     yd = 0 ;  
     float   avg_price = 0;
     std::shared_ptr<CThostFtdcInvestorPositionField> underlying;
     

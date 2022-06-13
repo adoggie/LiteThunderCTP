@@ -1,9 +1,8 @@
-# thunder scott simnow 交易账号配置
+# 测试 ctp tick 接收，转发到 LiveLineGo 实时生成 1M kline
 
-# 接收ps的标识
-id=thunder_scott
+id=eltrader
 
-#日志调试输出
+#调试输出
 debug.log.udp.enable = true
 debug.log.udp.host= 192.168.0.100
 debug.log.udp.port= 9906
@@ -11,37 +10,36 @@ debug.log.udp.port= 9906
 #是否定时检查呼叫的存活包(开发模式可关闭)
 keepalive_check.enable = false
 
+
 ctp.market.enable = 1
 ctp.market.join = 0
 ctp.market.tick.json =0
 ctp.market.tick.raw = 1
 ctp.market.tick.text = 1
 
-ctp.trade.join = 0
+ctp.trade.join = 1
 ctp.trade.enable = 1
 ctp.trade.query_interval = 2
 
 ctp.trade.query_trade = 0
-ctp.trade.query_account = 0
+ctp.trade.query_account = 1
 ctp.trade.query_order = 0
-ctp.trade.query_position = 0
-
-ctp.trade.account.query_interval = 2
+ctp.trade.query_position = 1
 
 ctp.user_id=
 ctp.password=
 ctp.broker_id=
 ctp.con_path= ./cons
-ctp.md_addr= tcp://180.168.146.187:10211
-ctp.td_addr= tcp://180.168.146.187:10201
-
+ctp.md_addr= tcp://101.230.217.33:41215
+ctp.td_addr= tcp://101.230.217.33:41207
 ctp.require_auth= true
 ctp.product_info=
-ctp.auth_code = 
+ctp.auth_code =
+ctp.sub_instruments =RM201
 
 
 position_receiver.enable = 0
-position_receiver.pub_addr = tcp://127.0.0.1:15552
+position_receiver.pub_addr = tcp://127.0.0.1:9011
 
 registry_client.enable = 0
 registry_client.pull_url=http://127.0.0.1:9988/api/elxtrader/registry/pull
@@ -51,8 +49,8 @@ pub_service.addr = tcp://172.16.30.3:1501
 pub_service.mode = connect
 
 redis.enable = 0
-redis.host=127.0.0.1
-redis.port=6379
+redis.host=192.168.30.21
+redis.port=45221
 redis.db=0
 
 #
@@ -60,15 +58,10 @@ http_service.enable = 1
 http_service.port=7001
 http_service.document_root=/tmp/dtu/http
 
-dataready.commission = 1
-dataready.margin = 1
-dataready.instrument = 1
-
-debug.zmq_pos_recv_print=0
-debug.slice_order_print = 1
-test.create_order = 1
-
-# 测试前置固定的当前仓位值
-test.present_pos.test = 0
-test.present_pos.value = 10
-test.dataready.timeout = 20
+# k线计算
+mkline.enable = 1
+mkline.periods=10s,15s,20s,30s,60s
+mkline.pub_addr=inproc://
+mkline.topic=mkline/$period/$symbol
+mkline.mmap = 1
+mkline.mmap.file = /tmp/mkline.dat
