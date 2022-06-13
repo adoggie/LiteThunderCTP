@@ -1,0 +1,24 @@
+
+firmware_var=1.0.1
+sys_time=2020-07-01 10:01:12
+mem_total=480
+mem_free=320
+
+
+{
+    "id":"",
+    "name":"data_set",
+    "device_id":"DTU-XXX-0001",
+    "params":{
+        "sensor_id":"door_1",
+        "switch": "close"
+    }
+
+}
+
+iot.down.pub.DTU-XXX-0001
+
+"{    \"id\":\"\",    \"name\":\"data_set\",    \"device_id\":\"DTU-XXX-0001\",    \"params\":{        \"sensor_id\":\"door_1\",        \"switch\": \"close\"    }}"
+
+
+"{    \"id\":\"\",    \"name\":\"data_query\",    \"device_id\":\"DTU-XXX-0001\",    \"params\":[ \"door_1\" ] }}"

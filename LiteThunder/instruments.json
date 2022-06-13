@@ -1,0 +1,43 @@
+
+{
+  "trading_time": [
+    {"id": "daynight", "times":[ [900,1015],[1030,1130],[1300,1500],[2100,2300]]  }
+    ,{"id": "day", "times":[ [900,1015],[1030,1130],[1300,1500]]  }
+    ,{"id": "daynight2", "times":[ [900,1015],[1030,1130],[1300,1500],[2100,200] ]  }
+  ],
+
+  "commodities":[
+    { "N":"苹果","name":"AP","weight": 1 ,"exchange":"CZCE", "trade_time":"day","instrument": "AP210","tick_price":1,"tick_size":10}
+
+    ,{ "焦煤":"","name":"jm","weight": 1 ,"exchange":"DCE", "trade_time":"daynight","instrument": "jm2208","tick_price":0.5,"tick_size":60}
+    
+    ,{ "N":"豆一","name":"a","weight": 1 ,"exchange":"DCE", "trade_time":"daynight","instrument": "a2207","tick_price":1,"tick_size":10}
+    
+    ,{"N":"黄金", "name":"au","weight": 1 ,"exchange":"SHFE", "trade_time":"daynight2","instrument": "au2208","tick_price":0.05,"tick_size":1000}
+
+    ,{"N":"铝", "name":"al","weight": 1 ,"exchange":"SHFE", "trade_time":"daynight2","instrument": "al2207","tick_price":5,"tick_size":5}
+
+
+    ,{"N":"原油", "name":"sc","weight": 1 ,"exchange":"INE", "trade_time":"daynight2","instrument": "sc2207","tick_price":0.1,"tick_size":1000}
+  ],
+  "instruments": [
+    
+    {"name": "AP210","commodity": "AP","timeout": 30,"enable": false , "ps":10,"price_type":2,"ticks":2, "mode":"fee", "comment":"限价"}
+
+    ,{"name": "jm2208","commodity": "jm","timeout": 30,"enable": false,"ps":-4,"price_type":"market","ticks":5 , "mode":"fee"}
+
+    ,{"name": "a2207","commodity": "a","timeout": 30,"enable": false,"ps":-4,"price_type":"limit","ticks":5 , "mode":"fee"}
+
+    ,{"name": "au2208","commodity": "au","timeout": 30,"enable": false,"ps":-4,"price_type":"limit","ticks":0 , "mode":"fee"}
+
+    ,{"name": "al2207","commodity": "al","timeout": 30,"enable": true,"ps":-4,"price_type":"limit","ticks":3 , "mode":"fee"}
+
+  ],
+  "comments":{
+    "margin": "保证金优先，锁仓操作",
+    "fee": "手续费优先 ， 不考虑今仓昨仓，不对锁，直接平今操作"
+    ,"tick_price": "最小价格变动"
+
+  }
+
+}

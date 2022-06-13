@@ -1,0 +1,56 @@
+position_receiver.enable: 0
+position_receiver.pub_addr: "tcp://127.0.0.1:9011"
+pub_service.enable: 1
+pub_service.addr : "tcp://127.0.0.1:9013"
+# pub_service.comment": "订阅此地址获得策略运行日志信息"
+
+registry_client.enable": 1
+registry_client.pull_url" : "http://127.0.0.1:9988/api/elxtrader/registry/pull"
+registry_client.db.host" : "115.159.152.138"
+registry_client.db.port" : 3306
+registry_client.db.name" : "ConfigInfo"
+registry_client.db.user" : "inforead"
+registry_client.db.passwd" : "dhsk_dk45eun@H"
+registry_client.db.entry.main" : "ac_db_txy"
+registry_client.db.entry.heartbeat" : "heartbeat_indb"
+registry_client.db.entry.zmq_router" : "IDCThunderZMQsubouter"
+
+logger.level": "DEBUG"
+logger.path" : "./"
+logger.filename": "elxtrader.log"
+
+account_id": "83606808"
+_account_id": "967801"
+id": "app-elx-1"
+service_type": "elx-trader"
+
+trade_api.url": "http://192.168.10.238:7001"
+trade_api.access_code": "nice!!"
+mx_reader.sub_addr": "tcp://192.168.10.238:9012"
+mx_reader.sub_topic": ""
+
+twap.timed_update.interval": 1
+risk_manager.enable": 1
+risk_manager.features":
+    self_trade:
+        "enable": 1
+        "comment": "自交易限制"
+    open_limit": {
+        "enable": 1
+        "comment": "开仓限制"
+    }
+    "order_cancel_limit": {
+        "enable":  1
+    }
+}
+product_margin": {
+    "a": 0.1
+}
+product_commission": {
+    "a": 0.01
+}
+product_tick": {
+    "a": 10
+}
+
+}

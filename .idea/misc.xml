@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$/LiteThunder">
+    <contentRoot DIR="$PROJECT_DIR$" />
+  </component>
+  <component name="SvnBranchConfigurationManager">
+    <option name="myConfigurationMap">
+      <map>
+        <entry key="$PROJECT_DIR$">
+          <value>
+            <SvnBranchConfiguration>
+              <option name="branchUrls">
+                <list>
+                  <option value="svn://bzz.wallizard.com:4000/EL/ConeTedy" />
+                  <option value="svn://bzz.wallizard.com:4000/EL/ParrallCone" />
+                  <option value="svn://bzz.wallizard.com:4000/EL/branches" />
+                  <option value="svn://bzz.wallizard.com:4000/EL/pyelf-new" />
+                  <option value="svn://bzz.wallizard.com:4000/EL/tags" />
+                </list>
+              </option>
+              <option name="trunkUrl" value="svn://bzz.wallizard.com:4000/EL/branches/LiteThunderCTP" />
+            </SvnBranchConfiguration>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

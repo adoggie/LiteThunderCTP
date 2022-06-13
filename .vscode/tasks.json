@@ -1,0 +1,34 @@
+{
+
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "mkdir",
+        "type": "shell",
+        "command": "mkdir LiteThunder/build -p"
+      },
+      {
+        "label": "cmake",
+        "type": "shell",
+        "command": "cmake3 -DCMAKE_BUILD_TYPE=debug ..",
+        "dependsOn": [
+          "mkdir"
+        ],
+        "options": {
+          "cwd": "${workspaceFolder}/LiteThunder/build"
+        }
+      },
+      {
+        "label": "make",
+        "type": "shell",
+        "command": "make",
+        "dependsOn": [
+          "cmake"
+        ],
+        "options": {
+          "cwd": "${workspaceFolder}/LiteThunder/build"
+        },
+        "problemMatcher": []
+      }
+    ]
+}
