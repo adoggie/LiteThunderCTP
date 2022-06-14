@@ -110,16 +110,38 @@ struct DirectionPosition{
     std::shared_ptr<CThostFtdcInvestorPositionField> underlying;
     
     int  getTd(){
-        int yd = 0 ;         
-        return volume - getYd() ;
+        int td = 0 ;
+        if( underlying){
+            td = underlying->TodayPosition;
+        }
+        return td  ;
     }
 
+    // 昨仓，不变
     int getYd(){
         int yd = 0 ;
         if( underlying){
             yd = underlying->YdPosition;
         }
         return yd ;
+    }
+
+    // 可平的昨仓
+    int getYdAvaiable(){
+        int yd = 0 ;
+        if( underlying){
+            yd = underlying->YdPosition - underlying->CloseVolume; // 当前规则：不平今，平的都是昨仓
+        }
+        return yd ;
+    }
+
+    // 当前开仓数量
+    int getOpenVol(){
+        int vol =0 ;
+        if( underlying){
+            vol = underlying->OpenVolume;
+        }
+        return vol ;
     }
 };
 

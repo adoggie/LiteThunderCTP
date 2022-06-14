@@ -143,8 +143,8 @@ private:
 
     std::shared_ptr< boost::asio::deadline_timer> query_timer_;
     bool                    requireAuthentication_ = false;
-	std::mutex              mutex_;
-	std::mutex              mutex_query_;
+	std::recursive_mutex              mutex_;
+	std::recursive_mutex              mutex_query_;
     std::recursive_mutex 	rmutex_;
     std::atomic<int>        order_ref_;
 

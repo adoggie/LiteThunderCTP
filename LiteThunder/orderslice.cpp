@@ -219,6 +219,83 @@ std::list< OrderSlice::Ptr > createOrderSliceMargin(const std::string& exchange,
     return slices;
 }
 
+
+// 保证金模式，对锁仓位 ，反向开仓
+
+std::list< OrderSlice::Ptr > createOrderSliceMargin2(const std::string& exchange,
+        int target, int present ,int long_open_vol, int short_open_vol, int long_yd, int short_yd ){
+    // target: 目标仓位 ,
+    // present:当前仓位 ,
+    // long_open_vol : 多头当日开仓量 ,
+    // short_open_vol: 空头当日开仓量
+    // long_yd:可平多头昨仓 ，
+    //  short_yd: 可平空头昨仓
+
+
+    int  diff  = target - present ;
+    int buy_close,buy_open , sell_close , sell_open;
+    buy_close = buy_open = sell_close = sell_open = 0;
+
+    if(exchange == "SHFE" || exchange == "INE"){
+        if(diff > 0 ){ // buy
+            buy_close = std::min(short_yd , diff);
+            buy_open = diff - buy_close;
+
+        }else if( diff < 0){ // sell
+            sell_close = std::min( long_yd,std::abs(diff));
+            sell_open = std::abs(diff) - sell_close;
+        }
+    }else{ // 锁仓模式
+        if(diff > 0 ){ // buy
+            if (short_open_vol == 0){ //今日未开仓 ， 无今仓，买平； 有今仓,不能买平，只能买开
+                buy_close = std::min(short_yd , diff);
+            }
+            buy_open = diff - buy_close;
+        }else if( diff < 0){ // sell
+            if( long_open_vol == 0){ // 今日未开仓
+                sell_close = std::min( long_yd,std::abs(diff));
+            }
+            sell_open = std::abs(diff) - sell_close;
+        }
+    }
+
+    std::list< OrderSlice::Ptr> slices;
+    if( buy_open > 0){
+        auto slice = std::make_shared<OrderSlice>();
+        slice->openclose = "open";
+        slice->direction = "buy";
+        slice->quantity = buy_open ;
+        slices.push_back(slice);
+    }
+
+    if (buy_close > 0 ){
+        auto slice = std::make_shared<OrderSlice>();
+        slice->openclose = "close";
+        slice->direction = "buy";
+        slice->quantity = buy_close ;
+        slices.push_back(slice);
+    }
+
+    if( sell_open > 0){
+        auto slice = std::make_shared<OrderSlice>();
+        slice->openclose = "open";
+        slice->direction = "sell";
+        slice->quantity = sell_open ;
+        slices.push_back(slice);
+    }
+
+    if (sell_close > 0 ){
+        auto slice = std::make_shared<OrderSlice>();
+        slice->openclose = "close";
+        slice->direction = "sell";
+        slice->quantity = sell_close ;
+        slices.push_back(slice);
+    }
+
+
+    return slices;
+}
+
 //考虑锁仓情况
 std::list< OrderSlice::Ptr > createOrderSlice( InstrumentConfig::Ptr instr, std::tuple<TD,YD> long_pos,std::tuple<TD,YD> short_pos,int target){
 

@@ -4,6 +4,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "app.h"
+#include "ctp-error.h"
 #include "trade.h"
 #include "Controller.h"
 
@@ -50,7 +51,7 @@ void TdApi::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateFi
         Application::instance()->getLogger().info("user authenticated okay.");
     }else{
         std::stringstream ss;
-        ss << "authenticated error. code:" << pRspInfo->ErrorID;
+        ss << "authenticated error. code:" << pRspInfo->ErrorID << " msg:"<< get_error_message(pRspInfo->ErrorID);
         Application::instance()->getLogger().error(ss.str());
     }
 };
@@ -371,6 +372,15 @@ void TdApi::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcR
 //    if(pRspInfo->ErrorID) {
 //        Controller::instance()->onOrderErrorReturn(pInputOrder, pRspInfo);
 //    }
+    std::stringstream ss ;
+    ss << "<< OnRspOrderInsert()..";
+    // PRINT_ORDER_INFO2(ss,"OnRspOrderInsert() ",pInputOrder);
+    Application::instance()->getLogger().debug(ss.str());
+    if(pRspInfo ){
+        ss.str("");
+        ss  << " ErrorCode:" << pRspInfo->ErrorID << " MSG:" << get_error_message(pRspInfo->ErrorID);
+    }
+    Application::instance()->getLogger().debug(ss.str());
 };
 
 void TdApi::OnRtnOrder(CThostFtdcOrderField *pOrder)
@@ -537,7 +547,7 @@ void TdApi::query_work_timer(){
     Config & cfg = Application::instance()->getConfig();
     int query_interval = cfg.get_int("ctp.trade.query_interval",1) ;
 
-    std::lock_guard<std::mutex> lock(mutex_query_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_query_);
 
     query_timer_->expires_from_now(boost::posix_time::seconds(query_interval));
 //    Application::instance()->getLogger().debug("query_work_timer()..");
@@ -635,7 +645,9 @@ void TdApi::stop(){
 void TdApi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast){
     std::string text = (boost::format("TdApi:: onRspError = error-id:%d , error-msg:%s") % pRspInfo->ErrorID %
                         pRspInfo->ErrorMsg).str();
-    Application::instance()->getLogger().debug(text );
+    std::stringstream ss ;
+    ss << "<< OnRspError() Error:" << pRspInfo->ErrorID << " MSG:" << get_error_message(pRspInfo->ErrorID);
+    Application::instance()->getLogger().error(ss.str() );
 }
 
 bool TdApi::connect(){
@@ -695,7 +707,7 @@ void TdApi::queryMarginRate(const std::string & instrument){
 
 // http  用户触发查询
 int TdApi::queryInstrumentInfo(const std::string& instrument){
-    std::lock_guard<std::mutex> lock(mutex_query_);
+    std::lock_guard<std::recursive_mutex> lock(mutex_query_);
 
     if( !logined_){
         return -1;

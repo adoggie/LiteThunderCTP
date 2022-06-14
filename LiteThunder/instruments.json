@@ -1,9 +1,9 @@
 
 {
   "trading_time": [
-    {"id": "daynight", "times":[ [900,1015],[1030,1130],[1300,1500],[2100,2300]]  }
-    ,{"id": "day", "times":[ [900,1015],[1030,1130],[1300,1500]]  }
-    ,{"id": "daynight2", "times":[ [900,1015],[1030,1130],[1300,1500],[2100,200] ]  }
+    {"id": "daynight", "times":[ [900,1015],[1030,1130],[1330,1500],[2100,2300]]  }
+    ,{"id": "day", "times":[ [900,1015],[1030,1130],[1330,1500]]  }
+    ,{"id": "daynight2", "times":[ [900,1015],[1030,1130],[1330,1500],[2100,200] ]  }
   ],
 
   "commodities":[
@@ -22,15 +22,15 @@
   ],
   "instruments": [
     
-    {"name": "AP210","commodity": "AP","timeout": 30,"enable": false , "ps":10,"ticks":2, "comment":"限价"}
+    {"name": "AP210","commodity": "AP","timeout": 30,"enable": false , "ps":10,"ticks":3, "comment":"限价"}
 
     ,{"name": "jm2208","commodity": "jm","timeout": 30,"enable": false,"ps":-4,"ticks":-5  }
 
-    ,{"name": "a2207","commodity": "a","timeout": 30,"enable": true,"ps":-4,"ticks":5 }
+    ,{"name": "a2207","commodity": "a","timeout": 30,"enable": false,"ps":-4,"ticks":5 }
 
     ,{"name": "au2208","commodity": "au","timeout": 30,"enable": false,"ps":-4,"ticks":0 }
 
-    ,{"name": "al2207","commodity": "al","timeout": 30,"enable": false,"ps":-4,"ticks":3 }
+    ,{"name": "al2207","commodity": "al","timeout": 30,"enable": true,"ps":-4,"ticks":3 }
 
   ],
   "comments":{

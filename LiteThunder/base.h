@@ -50,7 +50,7 @@ protected:
 	std::mutex			mutex_;
 };
 
-#define SCOPED_LOCK  std::lock_guard<std::mutex> lock(mutex_);
+#define SCOPED_LOCK  std::lock_guard<std::recursive_mutex> lock(mutex_);
 #define SCOPED_LOCK_RECURSIVE(mtx)  std::lock_guard<std::recursive_mutex> lock(mtx);
 
 //任务结构体

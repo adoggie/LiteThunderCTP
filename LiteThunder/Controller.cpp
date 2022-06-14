@@ -93,7 +93,7 @@ bool Controller::open(){
     int TIMETOUT = cfgs_.get_int("test.dataready.timeout",20);
 
     // 等待 market ，trade 用户登录成功
-    while( trade_user_login_ == false || market_user_login_ == false || position_return_ == false){
+    while( trade_user_login_ == false || market_user_login_ == false ){
         std::stringstream ss;
         if( start + TIMETOUT < std::time(NULL)){
             Application::instance()->getLogger().error("wait login : no response , break! ");
@@ -457,14 +457,29 @@ void Controller::keepWalkingThread(){
             int present = 0;
             std::list< OrderSlice::Ptr > slices ;
                    
-            int short_yd = this->getDirectionPosition( instcfg->name, "short").getYd();
-            int long_yd = this->getDirectionPosition( instcfg->name, "long").getYd();
-            int short_td = this->getDirectionPosition( instcfg->name, "short").getTd();
-            int long_td = this->getDirectionPosition( instcfg->name, "long").getTd();
-            slices = createOrderSliceMargin(instcfg->comm->exchange, 
-                            instcfg->target,
-                                    long_td,long_yd, short_td,short_yd);
-            present = (long_td + long_yd - short_td - short_yd);
+            // int short_yd = this->getDirectionPosition( instcfg->name, "short").getYd();
+            // int long_yd = this->getDirectionPosition( instcfg->name, "long").getYd();
+            // int short_td = this->getDirectionPosition( instcfg->name, "short").getTd();
+            // int long_td = this->getDirectionPosition( instcfg->name, "long").getTd();
+            // slices = createOrderSliceMargin(instcfg->comm->exchange,
+            //                 instcfg->target,
+            //                         long_td,long_yd, short_td,short_yd);
+            // present = (long_td + long_yd - short_td - short_yd);
+
+            present =  long_pos - short_pos;
+
+            auto dpos_long = getDirectionPosition(instcfg->name,"long");
+            auto dpos_short = getDirectionPosition(instcfg->name,"short");
+            if( instcfg->target == present){
+                continue ;
+            }
+            slices = createOrderSliceMargin2(instcfg->comm->exchange,
+                            instcfg->target, present,
+                            dpos_long.getOpenVol(),
+                            dpos_short.getOpenVol(),
+                            dpos_long.getYdAvaiable(),
+                            dpos_short.getYdAvaiable()
+                                    );
             
             if( slices.size() == 0){
                 continue ;
@@ -476,6 +491,12 @@ void Controller::keepWalkingThread(){
 
             
             if( cfgs_.get_int("debug.slice_order_print",0 ) ){
+
+                int short_yd = dpos_short.getYdAvaiable();
+                int long_yd = dpos_long.getYdAvaiable();
+                int short_td = dpos_short.getTd();
+                int long_td = dpos_long.getTd();
+
                 ss.str("");
                 Application::instance()->getLogger().debug("-------------------------"); 
                 ss  << instcfg->name << " "<< instcfg->comm->exchange << 
@@ -590,7 +611,7 @@ int Controller::createOrder(OrderSlice::Ptr slice){
         req.price = (market->LastPrice - slice->instcfg->comm->tick_price * slice->instcfg->ticks); // * slice->instcfg->comm->tick_size;
     }
     // 修正价格，使得与tick对齐
-    req.price = tradeutil::fixed_price(req.price, slice->instcfg->ticks);
+    req.price = tradeutil::fixed_price(req.price, slice->instcfg->comm->tick_price);
 
     
     { // print create order detail 
@@ -895,7 +916,7 @@ void Controller::showPosition(){
             if( inst_positions_short_.find(inst.first) != inst_positions_short_.end()){
                 dpos = inst_positions_short_[inst.first];
                 ss.str("");
-                ss << "-- " << inst.first << " short_pos:" << dpos.volume << " td:" << dpos.getTd() << " yd:"<<dpos.getYd();
+                ss << "-- " << inst.first << " short_pos:" << dpos.volume << " td:" << dpos.getTd() << " yd:"<<dpos.getYd() << " av-yd:"<< dpos.getYdAvaiable();
                 short_pos = dpos.volume;
                 Application::instance()->getLogger().debug(ss.str());
             }
@@ -905,7 +926,7 @@ void Controller::showPosition(){
             if( inst_positions_long_.find(inst.first) != inst_positions_long_.end()){
                 dpos = inst_positions_long_[inst.first];
                 ss.str("");
-                ss << "-- " << inst.first << " long_pos:" << dpos.volume << " td:" << dpos.getTd() << " yd:"<<dpos.getYd();
+                ss << "-- " << inst.first << " long_pos:" << dpos.volume << " td:" << dpos.getTd() << " yd:"<<dpos.getYd()<< " av-yd:"<< dpos.getYdAvaiable();
                 long_pos = dpos.volume;
                 Application::instance()->getLogger().debug(ss.str());
             }
@@ -963,19 +984,27 @@ void Controller::onPositionQueryResult(const std::vector<  CThostFtdcInvestorPos
         dpos.direction = pos.PosiDirection;
         dpos.volume = pos.Position;     
         // dpos.yd = pos.YdPosition;
-        // dpos.td = pos.TodayPosition;          
+        // dpos.td = pos.TodayPosition;
+         std::cout<< pos.InstrumentID << " " << pos.Position << " yd:"<< pos.YdPosition << " td:"<< pos.TodayPosition << " openvol:" << pos.OpenVolume << " closevol:"<< pos.CloseVolume << std::endl;
+
 
         if( pos.PosiDirection == THOST_FTDC_PD_Long){
-            inst_positions_long_[pos.InstrumentID] = dpos;
+            //if( inst_positions_long_.find(pos.InstrumentID) != inst_positions_long_.end()){
+                inst_positions_long_[pos.InstrumentID] = dpos;
+           // }
         }
         if( pos.PosiDirection == THOST_FTDC_PD_Short){
-            inst_positions_short_[pos.InstrumentID] = dpos;
+            //if( inst_positions_short_.find(pos.InstrumentID) != inst_positions_short_.end()){
+                inst_positions_short_[pos.InstrumentID] = dpos;
+            //}
         }
 
         
     }
     position_return_ = true;
-    if( count == 0){
+    // if( count == 0){
+    if(0){
+
          ss <<  "<< onPositionQueryResult()";
         Application::instance()->getLogger().debug(ss.str());
         showPosition();

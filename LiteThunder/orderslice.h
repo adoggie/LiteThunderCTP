@@ -11,6 +11,9 @@ std::list< OrderSlice::Ptr > createOrderSliceMargin(int target, int present, int
 std::list< OrderSlice::Ptr > createOrderSliceMargin(const std::string& exchange,
         int target, int long_td ,int long_yd,  int short_td,int short_yd );
 
+std::list< OrderSlice::Ptr > createOrderSliceMargin2(const std::string& exchange,
+        int target, int present ,int long_open_vol, int short_open_vol, int long_yd, int short_yd );
+
 void test_orderslice();
 void test_orderslice2();
 

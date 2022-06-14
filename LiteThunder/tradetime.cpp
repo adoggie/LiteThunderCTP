@@ -16,7 +16,7 @@ bool isInTradingTime(TradingTime * tt){
         }
         if( end < start ){
             // 跨日 21:00 - 2:30
-            if ( tv >= end || tv < start){
+            if ( tv >= start &&  tv < 2400 + end){
                 return true;
             }
         }
